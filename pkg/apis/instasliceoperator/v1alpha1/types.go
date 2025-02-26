@@ -67,7 +67,6 @@ type Instaslice struct {
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
-// +genclient
 // InstasliceList contains a list of Instaslice resources
 // +optional
 type InstasliceList struct {
