@@ -23,3 +23,11 @@ type InstasliceListerExpansion interface{}
 // InstasliceNamespaceListerExpansion allows custom methods to be added to
 // InstasliceNamespaceLister.
 type InstasliceNamespaceListerExpansion interface{}
+
+// InstasliceOperatorListerExpansion allows custom methods to be added to
+// InstasliceOperatorLister.
+type InstasliceOperatorListerExpansion interface{}
+
+// InstasliceOperatorNamespaceListerExpansion allows custom methods to be added to
+// InstasliceOperatorNamespaceLister.
+type InstasliceOperatorNamespaceListerExpansion interface{}

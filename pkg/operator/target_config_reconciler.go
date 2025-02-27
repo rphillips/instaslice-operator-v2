@@ -14,8 +14,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/listers/core/v1"
 
-	instasliceoperatorv1clientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1"
-	operatorclientv1informers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions/instasliceoperator/v1"
+	instasliceoperatorv1alphaclientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
+	operatorclientv1alpha1informers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions/instasliceoperator/v1alpha1"
 
 	"github.com/openshift/instaslice-operator/pkg/operator/operatorclient"
 	"github.com/openshift/library-go/pkg/controller/factory"
@@ -32,7 +32,7 @@ const (
 
 type TargetConfigReconciler struct {
 	targetImage                string
-	operatorClient             instasliceoperatorv1clientset.InstasliceOperatorInterface
+	operatorClient             instasliceoperatorv1alphaclientset.InstasliceOperatorInterface
 	dynamicClient              dynamic.Interface
 	discoveryClient            discovery.DiscoveryInterface
 	instasliceoperatorClient   *operatorclient.InstasliceOperatorSetClient
@@ -48,8 +48,8 @@ type TargetConfigReconciler struct {
 func NewTargetConfigReconciler(
 	targetImage string,
 	namespace string,
-	operatorConfigClient instasliceoperatorv1clientset.InstasliceOperatorInterface,
-	operatorClientInformer operatorclientv1informers.InstasliceOperatorInformer,
+	operatorConfigClient instasliceoperatorv1alphaclientset.InstasliceOperatorInterface,
+	operatorClientInformer operatorclientv1alpha1informers.InstasliceOperatorInformer,
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces,
 	instasliceoperatorClient *operatorclient.InstasliceOperatorSetClient,
 	dynamicClient dynamic.Interface,

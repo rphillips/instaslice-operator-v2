@@ -17,3 +17,5 @@ limitations under the License.
 package v1alpha1
 
 type InstasliceExpansion interface{}
+
+type InstasliceOperatorExpansion interface{}

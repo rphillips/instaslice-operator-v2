@@ -19,8 +19,6 @@ package fake
 import (
 	applyconfiguration "github.com/openshift/instaslice-operator/pkg/generated/applyconfiguration"
 	clientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned"
-	openshiftoperatorv1 "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1"
-	fakeopenshiftoperatorv1 "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1/fake"
 	openshiftoperatorv1alpha1 "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
 	fakeopenshiftoperatorv1alpha1 "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -115,11 +113,6 @@ var (
 	_ clientset.Interface = &Clientset{}
 	_ testing.FakeClient  = &Clientset{}
 )
-
-// OpenShiftOperatorV1 retrieves the OpenShiftOperatorV1Client
-func (c *Clientset) OpenShiftOperatorV1() openshiftoperatorv1.OpenShiftOperatorV1Interface {
-	return &fakeopenshiftoperatorv1.FakeOpenShiftOperatorV1{Fake: &c.Fake}
-}
 
 // OpenShiftOperatorV1alpha1 retrieves the OpenShiftOperatorV1alpha1Client
 func (c *Clientset) OpenShiftOperatorV1alpha1() openshiftoperatorv1alpha1.OpenShiftOperatorV1alpha1Interface {

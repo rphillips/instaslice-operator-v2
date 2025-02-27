@@ -19,7 +19,6 @@ package externalversions
 import (
 	fmt "fmt"
 
-	v1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1"
 	v1alpha1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1alpha1"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -51,13 +50,11 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=inference.redhat.com, Version=v1
-	case v1.SchemeGroupVersion.WithResource("instasliceoperators"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.OpenShiftOperator().V1().InstasliceOperators().Informer()}, nil
-
-		// Group=inference.redhat.com, Version=v1alpha1
+	// Group=inference.redhat.com, Version=v1alpha1
 	case v1alpha1.SchemeGroupVersion.WithResource("instaslices"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.OpenShiftOperator().V1alpha1().Instaslices().Informer()}, nil
+	case v1alpha1.SchemeGroupVersion.WithResource("instasliceoperators"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.OpenShiftOperator().V1alpha1().InstasliceOperators().Informer()}, nil
 
 	}
 

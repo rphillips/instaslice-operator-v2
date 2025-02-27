@@ -24,6 +24,8 @@ import (
 type Interface interface {
 	// Instaslices returns a InstasliceInformer.
 	Instaslices() InstasliceInformer
+	// InstasliceOperators returns a InstasliceOperatorInformer.
+	InstasliceOperators() InstasliceOperatorInformer
 }
 
 type version struct {
@@ -40,4 +42,9 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 // Instaslices returns a InstasliceInformer.
 func (v *version) Instaslices() InstasliceInformer {
 	return &instasliceInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// InstasliceOperators returns a InstasliceOperatorInformer.
+func (v *version) InstasliceOperators() InstasliceOperatorInformer {
+	return &instasliceOperatorInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

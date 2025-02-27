@@ -27,6 +27,7 @@ import (
 type OpenShiftOperatorV1alpha1Interface interface {
 	RESTClient() rest.Interface
 	InstaslicesGetter
+	InstasliceOperatorsGetter
 }
 
 // OpenShiftOperatorV1alpha1Client is used to interact with features provided by the inference.redhat.com group.
@@ -36,6 +37,10 @@ type OpenShiftOperatorV1alpha1Client struct {
 
 func (c *OpenShiftOperatorV1alpha1Client) Instaslices(namespace string) InstasliceInterface {
 	return newInstaslices(c, namespace)
+}
+
+func (c *OpenShiftOperatorV1alpha1Client) InstasliceOperators(namespace string) InstasliceOperatorInterface {
+	return newInstasliceOperators(c, namespace)
 }
 
 // NewForConfig creates a new OpenShiftOperatorV1alpha1Client for the given config.

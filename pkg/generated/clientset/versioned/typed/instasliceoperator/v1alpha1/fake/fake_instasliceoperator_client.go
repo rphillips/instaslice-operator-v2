@@ -30,6 +30,10 @@ func (c *FakeOpenShiftOperatorV1alpha1) Instaslices(namespace string) v1alpha1.I
 	return newFakeInstaslices(c, namespace)
 }
 
+func (c *FakeOpenShiftOperatorV1alpha1) InstasliceOperators(namespace string) v1alpha1.InstasliceOperatorInterface {
+	return newFakeInstasliceOperators(c, namespace)
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeOpenShiftOperatorV1alpha1) RESTClient() rest.Interface {

@@ -16,10 +16,10 @@ import (
 	"github.com/openshift/library-go/pkg/apiserver/jsonpatch"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
-	instasliceoperatorapiv1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1"
-	instasliceoperatorv1 "github.com/openshift/instaslice-operator/pkg/generated/applyconfiguration/instasliceoperator/v1"
-	instasliceoperatorinterface "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1"
-	instasliceoperatorlisterv1 "github.com/openshift/instaslice-operator/pkg/generated/listers/instasliceoperator/v1"
+	instasliceoperatorapiv1alpha1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1alpha1"
+	instasliceoperatorv1alpha1 "github.com/openshift/instaslice-operator/pkg/generated/applyconfiguration/instasliceoperator/v1alpha1"
+	instasliceoperatorinterface "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
+	instasliceoperatorlisterv1alpha1 "github.com/openshift/instaslice-operator/pkg/generated/listers/instasliceoperator/v1alpha1"
 )
 
 const OperatorConfigName = "cluster"
@@ -29,8 +29,8 @@ var _ v1helpers.OperatorClient = &InstasliceOperatorSetClient{}
 type InstasliceOperatorSetClient struct {
 	Ctx               context.Context
 	SharedInformer    cache.SharedIndexInformer
-	OperatorClient    instasliceoperatorinterface.OpenShiftOperatorV1Interface
-	Lister            instasliceoperatorlisterv1.InstasliceOperatorLister
+	OperatorClient    instasliceoperatorinterface.OpenShiftOperatorV1alpha1Interface
+	Lister            instasliceoperatorlisterv1alpha1.InstasliceOperatorLister
 	OperatorNamespace string
 }
 
@@ -39,7 +39,7 @@ func (l *InstasliceOperatorSetClient) Informer() cache.SharedIndexInformer {
 }
 
 func (l *InstasliceOperatorSetClient) GetObjectMeta() (meta *metav1.ObjectMeta, err error) {
-	var instance *instasliceoperatorapiv1.InstasliceOperator
+	var instance *instasliceoperatorapiv1alpha1.InstasliceOperator
 	if l.SharedInformer.HasSynced() {
 		instance, err = l.Lister.InstasliceOperators(l.OperatorNamespace).Get(OperatorConfigName)
 		if err != nil {
@@ -107,10 +107,10 @@ func (l *InstasliceOperatorSetClient) ApplyOperatorSpec(ctx context.Context, fie
 		return fmt.Errorf("applyConfiguration must have a value")
 	}
 
-	desiredSpec := &instasliceoperatorv1.InstasliceOperatorSpecApplyConfiguration{
+	desiredSpec := &instasliceoperatorv1alpha1.InstasliceOperatorSpecApplyConfiguration{
 		OperatorSpecApplyConfiguration: *applyConfiguration,
 	}
-	desired := instasliceoperatorv1.InstasliceOperator(OperatorConfigName, l.OperatorNamespace)
+	desired := instasliceoperatorv1alpha1.InstasliceOperator(OperatorConfigName, l.OperatorNamespace)
 	desired.WithSpec(desiredSpec)
 
 	instance, err := l.OperatorClient.InstasliceOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
@@ -120,7 +120,7 @@ func (l *InstasliceOperatorSetClient) ApplyOperatorSpec(ctx context.Context, fie
 	case err != nil:
 		return fmt.Errorf("unable to get operator configuration: %w", err)
 	default:
-		original, err := instasliceoperatorv1.ExtractInstasliceOperator(instance, fieldManager)
+		original, err := instasliceoperatorv1alpha1.ExtractInstasliceOperator(instance, fieldManager)
 		if err != nil {
 			return fmt.Errorf("unable to extract operator configuration from spec: %w", err)
 		}
@@ -145,10 +145,10 @@ func (l *InstasliceOperatorSetClient) ApplyOperatorStatus(ctx context.Context, f
 		return fmt.Errorf("applyConfiguration must have a value")
 	}
 
-	desiredStatus := &instasliceoperatorv1.InstasliceOperatorStatusApplyConfiguration{
+	desiredStatus := &instasliceoperatorv1alpha1.InstasliceOperatorStatusApplyConfiguration{
 		OperatorStatusApplyConfiguration: *applyConfiguration,
 	}
-	desired := instasliceoperatorv1.InstasliceOperator(OperatorConfigName, l.OperatorNamespace)
+	desired := instasliceoperatorv1alpha1.InstasliceOperator(OperatorConfigName, l.OperatorNamespace)
 	desired.WithStatus(desiredStatus)
 
 	instance, err := l.OperatorClient.InstasliceOperators(l.OperatorNamespace).Get(ctx, OperatorConfigName, metav1.GetOptions{})
@@ -159,7 +159,7 @@ func (l *InstasliceOperatorSetClient) ApplyOperatorStatus(ctx context.Context, f
 	case err != nil:
 		return fmt.Errorf("unable to get operator configuration: %w", err)
 	default:
-		original, err := instasliceoperatorv1.ExtractInstasliceOperatorStatus(instance, fieldManager)
+		original, err := instasliceoperatorv1alpha1.ExtractInstasliceOperatorStatus(instance, fieldManager)
 		if err != nil {
 			return fmt.Errorf("unable to extract operator configuration from status: %w", err)
 		}

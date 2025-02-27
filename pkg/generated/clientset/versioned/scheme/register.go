@@ -17,7 +17,6 @@ limitations under the License.
 package scheme
 
 import (
-	openshiftoperatorv1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1"
 	openshiftoperatorv1alpha1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -30,7 +29,6 @@ var Scheme = runtime.NewScheme()
 var Codecs = serializer.NewCodecFactory(Scheme)
 var ParameterCodec = runtime.NewParameterCodec(Scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
-	openshiftoperatorv1.AddToScheme,
 	openshiftoperatorv1alpha1.AddToScheme,
 }
 

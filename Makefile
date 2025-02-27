@@ -37,7 +37,7 @@ $(call verify-golang-versions,Dockerfile)
 regen-crd:
 	go build -o _output/tools/bin/controller-gen ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
 	rm -f manifests/instaslice-operator.crd.yaml
-	./_output/tools/bin/controller-gen crd paths=./pkg/apis/instasliceoperator/v1/... schemapatch:manifests=./manifests output:crd:dir=./manifests
+	./_output/tools/bin/controller-gen crd paths=./pkg/apis/instasliceoperator/v1alpha1/... schemapatch:manifests=./manifests output:crd:dir=./manifests
 	mv manifests/inference.redhat.com_instasliceoperators.yaml manifests/instaslice-operator.crd.yaml
 	cp manifests/instaslice-operator.crd.yaml deploy/00_instaslice-operator.crd.yaml
 
