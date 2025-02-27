@@ -33,7 +33,8 @@ IMAGE_REGISTRY := quay.io/redhat-user-workloads/dynamicacceleratorsl-tenant
 $(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator, ./Dockerfile.ocp,.)
 $(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset, ./Dockerfile.daemonset.ocp,.)
 
-$(call verify-golang-versions,Dockerfile)
+$(call verify-golang-versions,Dockerfile.ocp)
+$(call verify-golang-versions,Dockerfile.daemonset.ocp)
 
 regen-crd:
 	go build -o _output/tools/bin/controller-gen ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
