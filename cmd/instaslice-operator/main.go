@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	command := NewLWSOperatorCommand(context.Background())
+	command := NewInstasliceOperatorCommand(context.Background())
 	if err := command.Execute(); err != nil {
 		_, err := fmt.Fprintf(os.Stderr, "%v\n", err)
 		if err != nil {
@@ -21,7 +21,7 @@ func main() {
 	}
 }
 
-func NewLWSOperatorCommand(ctx context.Context) *cobra.Command {
+func NewInstasliceOperatorCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "instaslice-operator",
 		Short: "OpenShift cluster Instaslice operator",
