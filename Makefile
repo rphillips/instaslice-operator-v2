@@ -53,6 +53,5 @@ verify-codegen:
 .PHONY: verify-codegen
 
 clean:
-	$(RM) ./lws-operator
 	$(RM) -r ./_tmp
 .PHONY: clean

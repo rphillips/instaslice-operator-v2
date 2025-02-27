@@ -1,6 +1,6 @@
 module github.com/openshift/instaslice-operator
 
-go 1.24.0
+go 1.23.0
 
 require (
 	github.com/openshift/api v0.0.0-20250226153854-e8e096a21cb3
