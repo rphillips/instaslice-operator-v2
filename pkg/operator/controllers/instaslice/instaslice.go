@@ -14,14 +14,14 @@ type InstasliceController struct {
 	instasliceInformer operatorclientv1alpha1informers.InstasliceInformer
 }
 
-func NewInstasliceController(eventRecorder events.Recorder, instasliceInformer operatorclientv1alpha1informers.InstasliceInformer) factory.Controller {
+func NewInstasliceController(instasliceInformer operatorclientv1alpha1informers.InstasliceInformer, eventRecorder events.Recorder) factory.Controller {
 	c := &InstasliceController{
 		instasliceInformer: instasliceInformer,
 	}
 
 	return factory.New().WithInformers(instasliceInformer.Informer()).
 		WithSync(c.sync).
-		ToController("TargetConfigController", eventRecorder)
+		ToController("InstasliceController", eventRecorder)
 }
 
 func (c *InstasliceController) sync(ctx context.Context, syncCtx factory.SyncContext) error {

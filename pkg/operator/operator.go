@@ -17,6 +17,7 @@ import (
 
 	operatorconfigclient "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned"
 	operatorclientinformers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions"
+	instaslicecontroller "github.com/openshift/instaslice-operator/pkg/operator/controllers/instaslice"
 	"github.com/openshift/instaslice-operator/pkg/operator/operatorclient"
 )
 
@@ -55,10 +56,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		namespace = operatorNamespace
 	}
 
-	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient,
-		"",
-		namespace,
-	)
+	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient, "", namespace)
 
 	instasliceClient := &operatorclient.InstasliceOperatorSetClient{
 		Ctx:               ctx,
@@ -75,7 +73,6 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		operatorConfigInformers.OpenShiftOperator().V1alpha1().InstasliceOperators(),
 		kubeInformersForNamespaces,
 		instasliceClient,
-		operatorConfigInformers.OpenShiftOperator().V1alpha1().Instaslices(),
 		dynamicClient,
 		discoveryClient,
 		kubeClient,
@@ -84,6 +81,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	)
 
 	logLevelController := loglevel.NewClusterOperatorLoggingController(instasliceClient, cc.EventRecorder)
+	instasliceController := instaslicecontroller.NewInstasliceController(operatorConfigInformers.OpenShiftOperator().V1alpha1().Instaslices(), cc.EventRecorder)
 
 	klog.Infof("Starting informers")
 	operatorConfigInformers.Start(ctx.Done())
@@ -93,6 +91,8 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	go logLevelController.Run(ctx, 1)
 	klog.Infof("Starting target config reconciler")
 	go targetConfigReconciler.Run(ctx, 1)
+	klog.Infof("Starting Instaslice Controller")
+	go instasliceController.Run(ctx, 1)
 
 	<-ctx.Done()
 	return nil

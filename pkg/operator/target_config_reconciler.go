@@ -16,7 +16,6 @@ import (
 
 	instasliceoperatorv1alphaclientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
 	operatorclientv1alpha1informers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions/instasliceoperator/v1alpha1"
-	instaslicecontroller "github.com/openshift/instaslice-operator/pkg/operator/controllers/instaslice"
 
 	"github.com/openshift/instaslice-operator/pkg/operator/operatorclient"
 	"github.com/openshift/library-go/pkg/controller/factory"
@@ -54,7 +53,6 @@ func NewTargetConfigReconciler(
 	operatorClientInformer operatorclientv1alpha1informers.InstasliceOperatorInformer,
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces,
 	instasliceoperatorClient *operatorclient.InstasliceOperatorSetClient,
-	instasliceInformer operatorclientv1alpha1informers.InstasliceInformer,
 	dynamicClient dynamic.Interface,
 	discoveryClient discovery.DiscoveryInterface,
 	kubeClient kubernetes.Interface,
@@ -67,7 +65,6 @@ func NewTargetConfigReconciler(
 		dynamicClient:              dynamicClient,
 		eventRecorder:              eventRecorder,
 		instasliceoperatorClient:   instasliceoperatorClient,
-		instasliceInformer:         instasliceInformer,
 		kubeClient:                 kubeClient,
 		kubeInformersForNamespaces: kubeInformersForNamespaces,
 		namespace:                  namespace,
@@ -88,7 +85,7 @@ func NewTargetConfigReconciler(
 	).ResyncEvery(time.Minute*5).
 		WithSync(c.sync).
 		WithSyncDegradedOnError(instasliceoperatorClient).
-		ToController("TargetConfigController", eventRecorder)
+		ToController("InstasliceOperatorController", eventRecorder)
 }
 
 func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncContext) error {
@@ -109,9 +106,6 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 	if err != nil {
 		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
-
-	instasliceController := instaslicecontroller.NewInstasliceController(c.eventRecorder, c.instasliceInformer)
-	go instasliceController.Run(ctx, 1)
 
 	return err
 }
