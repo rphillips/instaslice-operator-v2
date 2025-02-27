@@ -14,7 +14,7 @@ spec:
     singular: instasliceoperator
   scope: Namespaced
   versions:
-  - name: v1
+  - name: v1alpha1
     schema:
       openAPIV3Schema:
         description: InstasliceOperator is the Schema for the InstasliceOperator API

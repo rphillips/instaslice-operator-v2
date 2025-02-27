@@ -17,9 +17,7 @@ limitations under the License.
 package applyconfiguration
 
 import (
-	v1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1"
 	v1alpha1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1alpha1"
-	instasliceoperatorv1 "github.com/openshift/instaslice-operator/pkg/generated/applyconfiguration/instasliceoperator/v1"
 	instasliceoperatorv1alpha1 "github.com/openshift/instaslice-operator/pkg/generated/applyconfiguration/instasliceoperator/v1alpha1"
 	internal "github.com/openshift/instaslice-operator/pkg/generated/applyconfiguration/internal"
 	runtime "k8s.io/apimachinery/pkg/runtime"
@@ -31,15 +29,7 @@ import (
 // apply configuration type exists for the given GroupVersionKind.
 func ForKind(kind schema.GroupVersionKind) interface{} {
 	switch kind {
-	// Group=inference.redhat.com, Version=v1
-	case v1.SchemeGroupVersion.WithKind("InstasliceOperator"):
-		return &instasliceoperatorv1.InstasliceOperatorApplyConfiguration{}
-	case v1.SchemeGroupVersion.WithKind("InstasliceOperatorSpec"):
-		return &instasliceoperatorv1.InstasliceOperatorSpecApplyConfiguration{}
-	case v1.SchemeGroupVersion.WithKind("InstasliceOperatorStatus"):
-		return &instasliceoperatorv1.InstasliceOperatorStatusApplyConfiguration{}
-
-		// Group=inference.redhat.com, Version=v1alpha1
+	// Group=inference.redhat.com, Version=v1alpha1
 	case v1alpha1.SchemeGroupVersion.WithKind("AllocationRequest"):
 		return &instasliceoperatorv1alpha1.AllocationRequestApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("AllocationResult"):
@@ -52,6 +42,12 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &instasliceoperatorv1alpha1.DiscoveredNodeResourcesApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("Instaslice"):
 		return &instasliceoperatorv1alpha1.InstasliceApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("InstasliceOperator"):
+		return &instasliceoperatorv1alpha1.InstasliceOperatorApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("InstasliceOperatorSpec"):
+		return &instasliceoperatorv1alpha1.InstasliceOperatorSpecApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("InstasliceOperatorStatus"):
+		return &instasliceoperatorv1alpha1.InstasliceOperatorStatusApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("InstasliceSpec"):
 		return &instasliceoperatorv1alpha1.InstasliceSpecApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("InstasliceStatus"):

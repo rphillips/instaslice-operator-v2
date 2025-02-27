@@ -62,17 +62,17 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 
 	instasliceClient := &operatorclient.InstasliceOperatorSetClient{
 		Ctx:               ctx,
-		SharedInformer:    operatorConfigInformers.OpenShiftOperator().V1().InstasliceOperators().Informer(),
-		Lister:            operatorConfigInformers.OpenShiftOperator().V1().InstasliceOperators().Lister(),
-		OperatorClient:    operatorConfigClient.OpenShiftOperatorV1(),
+		SharedInformer:    operatorConfigInformers.OpenShiftOperator().V1alpha1().InstasliceOperators().Informer(),
+		Lister:            operatorConfigInformers.OpenShiftOperator().V1alpha1().InstasliceOperators().Lister(),
+		OperatorClient:    operatorConfigClient.OpenShiftOperatorV1alpha1(),
 		OperatorNamespace: namespace,
 	}
 
 	targetConfigReconciler := NewTargetConfigReconciler(
 		os.Getenv("RELATED_IMAGE_OPERAND_IMAGE"),
 		namespace,
-		operatorConfigClient.OpenShiftOperatorV1().InstasliceOperators(namespace),
-		operatorConfigInformers.OpenShiftOperator().V1().InstasliceOperators(),
+		operatorConfigClient.OpenShiftOperatorV1alpha1().InstasliceOperators(namespace),
+		operatorConfigInformers.OpenShiftOperator().V1alpha1().InstasliceOperators(),
 		kubeInformersForNamespaces,
 		instasliceClient,
 		dynamicClient,

@@ -1,4 +1,4 @@
-package v1
+package v1alpha1
 
 import (
 	operatorv1 "github.com/openshift/api/operator/v1"

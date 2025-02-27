@@ -20,7 +20,6 @@ import (
 	fmt "fmt"
 	http "net/http"
 
-	openshiftoperatorv1 "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1"
 	openshiftoperatorv1alpha1 "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
@@ -29,20 +28,13 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	OpenShiftOperatorV1() openshiftoperatorv1.OpenShiftOperatorV1Interface
 	OpenShiftOperatorV1alpha1() openshiftoperatorv1alpha1.OpenShiftOperatorV1alpha1Interface
 }
 
 // Clientset contains the clients for groups.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	openShiftOperatorV1       *openshiftoperatorv1.OpenShiftOperatorV1Client
 	openShiftOperatorV1alpha1 *openshiftoperatorv1alpha1.OpenShiftOperatorV1alpha1Client
-}
-
-// OpenShiftOperatorV1 retrieves the OpenShiftOperatorV1Client
-func (c *Clientset) OpenShiftOperatorV1() openshiftoperatorv1.OpenShiftOperatorV1Interface {
-	return c.openShiftOperatorV1
 }
 
 // OpenShiftOperatorV1alpha1 retrieves the OpenShiftOperatorV1alpha1Client
@@ -94,10 +86,6 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*Clientset,
 
 	var cs Clientset
 	var err error
-	cs.openShiftOperatorV1, err = openshiftoperatorv1.NewForConfigAndClient(&configShallowCopy, httpClient)
-	if err != nil {
-		return nil, err
-	}
 	cs.openShiftOperatorV1alpha1, err = openshiftoperatorv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
@@ -123,7 +111,6 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.openShiftOperatorV1 = openshiftoperatorv1.New(c)
 	cs.openShiftOperatorV1alpha1 = openshiftoperatorv1alpha1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
