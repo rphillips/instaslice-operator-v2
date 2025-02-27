@@ -16,6 +16,7 @@ import (
 
 	instasliceoperatorv1alphaclientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
 	operatorclientv1alpha1informers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions/instasliceoperator/v1alpha1"
+	instaslicecontroller "github.com/openshift/instaslice-operator/pkg/operator/controllers/instaslice"
 
 	"github.com/openshift/instaslice-operator/pkg/operator/operatorclient"
 	"github.com/openshift/library-go/pkg/controller/factory"
@@ -26,23 +27,24 @@ import (
 
 const (
 	WebhookCertificateSecretName  = "webhook-server-cert"
-	WebhookCertificateName        = "lws-serving-cert"
+	WebhookCertificateName        = "instaslice-serving-cert"
 	CertManagerInjectCaAnnotation = "cert-manager.io/inject-ca-from"
 )
 
 type TargetConfigReconciler struct {
-	targetImage                string
-	operatorClient             instasliceoperatorv1alphaclientset.InstasliceOperatorInterface
-	dynamicClient              dynamic.Interface
-	discoveryClient            discovery.DiscoveryInterface
-	instasliceoperatorClient   *operatorclient.InstasliceOperatorSetClient
-	kubeClient                 kubernetes.Interface
 	apiextensionClient         *apiextclientv1.Clientset
+	discoveryClient            discovery.DiscoveryInterface
+	dynamicClient              dynamic.Interface
 	eventRecorder              events.Recorder
+	instasliceoperatorClient   *operatorclient.InstasliceOperatorSetClient
+	instasliceInformer         operatorclientv1alpha1informers.InstasliceInformer
+	kubeClient                 kubernetes.Interface
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces
-	secretLister               v1.SecretLister
 	namespace                  string
+	operatorClient             instasliceoperatorv1alphaclientset.InstasliceOperatorInterface
 	resourceCache              resourceapply.ResourceCache
+	secretLister               v1.SecretLister
+	targetImage                string
 }
 
 func NewTargetConfigReconciler(
@@ -52,6 +54,7 @@ func NewTargetConfigReconciler(
 	operatorClientInformer operatorclientv1alpha1informers.InstasliceOperatorInformer,
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces,
 	instasliceoperatorClient *operatorclient.InstasliceOperatorSetClient,
+	instasliceInformer operatorclientv1alpha1informers.InstasliceInformer,
 	dynamicClient dynamic.Interface,
 	discoveryClient discovery.DiscoveryInterface,
 	kubeClient kubernetes.Interface,
@@ -59,25 +62,27 @@ func NewTargetConfigReconciler(
 	eventRecorder events.Recorder,
 ) factory.Controller {
 	c := &TargetConfigReconciler{
-		operatorClient:             operatorConfigClient,
-		dynamicClient:              dynamicClient,
-		instasliceoperatorClient:   instasliceoperatorClient,
-		kubeClient:                 kubeClient,
-		discoveryClient:            discoveryClient,
 		apiextensionClient:         apiExtensionClient,
+		discoveryClient:            discoveryClient,
+		dynamicClient:              dynamicClient,
 		eventRecorder:              eventRecorder,
+		instasliceoperatorClient:   instasliceoperatorClient,
+		instasliceInformer:         instasliceInformer,
+		kubeClient:                 kubeClient,
 		kubeInformersForNamespaces: kubeInformersForNamespaces,
+		namespace:                  namespace,
+		operatorClient:             operatorConfigClient,
+		resourceCache:              resourceapply.NewResourceCache(),
 		secretLister:               kubeInformersForNamespaces.SecretLister(),
 		targetImage:                targetImage,
-		namespace:                  namespace,
-		resourceCache:              resourceapply.NewResourceCache(),
 	}
 
 	return factory.New().WithInformers(
 		// for the operator changes
 		operatorClientInformer.Informer(),
-		// for the deployment and its configmap and secret
+		// for the deployment and its configmap, secret, daemonsets.
 		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().Deployments().Informer(),
+		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().DaemonSets().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().ConfigMaps().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().Secrets().Informer(),
 	).ResyncEvery(time.Minute*5).
@@ -104,6 +109,9 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 	if err != nil {
 		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
+
+	instasliceController := instaslicecontroller.NewInstasliceController(c.eventRecorder, c.instasliceInformer)
+	go instasliceController.Run(ctx, 1)
 
 	return err
 }

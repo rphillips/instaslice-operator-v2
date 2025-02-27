@@ -40,6 +40,7 @@ regen-crd:
 	./_output/tools/bin/controller-gen crd paths=./pkg/apis/instasliceoperator/v1alpha1/... schemapatch:manifests=./manifests output:crd:dir=./manifests
 	mv manifests/inference.redhat.com_instasliceoperators.yaml manifests/instaslice-operator.crd.yaml
 	cp manifests/instaslice-operator.crd.yaml deploy/00_instaslice-operator.crd.yaml
+	cp manifests/inference.redhat.com_instaslices.yaml deploy/00_instaslices.crd.yaml
 
 generate: regen-crd generate-clients
 .PHONY: generate

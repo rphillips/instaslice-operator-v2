@@ -75,6 +75,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		operatorConfigInformers.OpenShiftOperator().V1alpha1().InstasliceOperators(),
 		kubeInformersForNamespaces,
 		instasliceClient,
+		operatorConfigInformers.OpenShiftOperator().V1alpha1().Instaslices(),
 		dynamicClient,
 		discoveryClient,
 		kubeClient,
