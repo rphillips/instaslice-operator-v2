@@ -30,7 +30,7 @@ type InstasliceOperatorSpec struct {
 
 	// EmulatedMode true configures the operator to not use the GPU backend
 	// +required
-	EmulatedMode bool `json:"emulated_mode"`
+	EmulatedMode bool `json:"emulatedMode"`
 }
 
 // InstasliceOperatorStatus defines the observed state of InstasliceOperator

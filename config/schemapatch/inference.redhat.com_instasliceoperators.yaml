@@ -42,9 +42,9 @@ spec:
               description: spec holds user settable values for configuration
               type: object
               required:
-                - emulated_mode
+                - emulatedMode
               properties:
-                emulated_mode:
+                emulatedMode:
                   description: EmulatedMode true configures the operator to not use the GPU backend
                   type: boolean
                 logLevel:

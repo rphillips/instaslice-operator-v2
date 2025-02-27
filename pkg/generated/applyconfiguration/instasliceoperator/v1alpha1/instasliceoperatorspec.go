@@ -26,7 +26,7 @@ import (
 // with apply.
 type InstasliceOperatorSpecApplyConfiguration struct {
 	v1.OperatorSpecApplyConfiguration `json:",inline"`
-	EmulatedMode                      *bool `json:"emulated_mode,omitempty"`
+	EmulatedMode                      *bool `json:"emulatedMode,omitempty"`
 }
 
 // InstasliceOperatorSpecApplyConfiguration constructs a declarative configuration of the InstasliceOperatorSpec type for use with
