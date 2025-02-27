@@ -22,7 +22,7 @@ include $(addprefix ./vendor/github.com/openshift/build-machinery-go/make/, \
 GO_TEST_PACKAGES :=./pkg/... ./cmd/...
 GO_BUILD_FLAGS :=-tags strictfipsruntime
 
-IMAGE_REGISTRY := registry.ci.openshift.org
+IMAGE_REGISTRY := quay.io/redhat-user-workloads/dynamicacceleratorsl-tenant
 
 # This will call a macro called "build-image" which will generate image specific targets based on the parameters:
 # $0 - macro name
@@ -30,7 +30,8 @@ IMAGE_REGISTRY := registry.ci.openshift.org
 # $2 - image ref
 # $3 - Dockerfile path
 # $4 - context directory for image build
-$(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/ocp/4.19:instaslice-operator, ./Dockerfile,.)
+$(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator, ./Dockerfile.ocp,.)
+$(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset, ./Dockerfile.daemonset.ocp,.)
 
 $(call verify-golang-versions,Dockerfile)
 
