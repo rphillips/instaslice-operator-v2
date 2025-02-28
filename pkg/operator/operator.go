@@ -10,18 +10,23 @@ import (
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 
 	operatorconfigclient "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned"
 	operatorclientinformers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions"
 	instaslicecontroller "github.com/openshift/instaslice-operator/pkg/operator/controllers/instaslice"
+	instaslicecontrollerns "github.com/openshift/instaslice-operator/pkg/operator/controllers/instaslice-ns"
 	"github.com/openshift/instaslice-operator/pkg/operator/operatorclient"
 )
 
 var operatorNamespace = "instaslice-system"
+
+const namespaceLabel = "inference.redhat.com/enabled=true"
 
 func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error {
 	kubeClient, err := kubernetes.NewForConfig(cc.ProtoKubeConfig)
@@ -56,6 +61,13 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		namespace = operatorNamespace
 	}
 
+	// Create a filtered namespace lister
+	twOptions := informers.WithTweakListOptions(func(listOptions *metav1.ListOptions) {
+		listOptions.LabelSelector = namespaceLabel
+	})
+	namespaceFilterInformer := informers.NewSharedInformerFactoryWithOptions(kubeClient, 10*time.Minute, twOptions)
+
+	// KubeInformer for Instaslice namespace
 	kubeInformersForNamespaces := v1helpers.NewKubeInformersForNamespaces(kubeClient, "", namespace)
 
 	instasliceClient := &operatorclient.InstasliceOperatorSetClient{
@@ -80,12 +92,19 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		cc.EventRecorder,
 	)
 
+	// Create the log controller
 	logLevelController := loglevel.NewClusterOperatorLoggingController(instasliceClient, cc.EventRecorder)
+
+	// Create the Instaslice Controller
 	instasliceController := instaslicecontroller.NewInstasliceController(operatorConfigInformers.OpenShiftOperator().V1alpha1().Instaslices(), cc.EventRecorder)
+
+	// Create the InstasliceNS Controller
+	instasliceControllerNS := instaslicecontrollerns.NewInstasliceController(namespaceFilterInformer, cc.EventRecorder)
 
 	klog.Infof("Starting informers")
 	operatorConfigInformers.Start(ctx.Done())
 	kubeInformersForNamespaces.Start(ctx.Done())
+	namespaceFilterInformer.Start(ctx.Done())
 
 	klog.Infof("Starting log level controller")
 	go logLevelController.Run(ctx, 1)
@@ -93,6 +112,8 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	go targetConfigReconciler.Run(ctx, 1)
 	klog.Infof("Starting Instaslice Controller")
 	go instasliceController.Run(ctx, 1)
+	klog.Infof("Starting Instaslice Namespace Controller")
+	go instasliceControllerNS.Run(ctx, 1)
 
 	<-ctx.Done()
 	return nil
