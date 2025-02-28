@@ -108,7 +108,7 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
 
-	klog.V(2).InfoS("Got operator config", "config", sliceOperatorConfig.Spec)
+	klog.V(2).InfoS("Got operator config", "emulated_mode", sliceOperatorConfig.Spec.EmulatedMode)
 
 	return err
 }

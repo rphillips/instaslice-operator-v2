@@ -53,11 +53,15 @@ apply-crds:
   kubectl apply -f deploy/09_*
   sleep 2
 
+# install cert-manager
+apply-cert-manager:
+  kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
+
 wait-for-operator:
   kubectl wait --for=condition=ready pod -l app=instaslice-operator -n instaslice-system --timeout=300s
 
 # run e2e's
-e2e-kind path="./test/e2e" multinamespace="false": create-kind apply-crds wait-for-operator && delete-kind
+e2e-kind path="./test/e2e" multinamespace="false": create-kind apply-cert-manager apply-crds wait-for-operator && delete-kind
   #!/usr/bin/env bash
 
   echo "Run E2E's on Kind"
