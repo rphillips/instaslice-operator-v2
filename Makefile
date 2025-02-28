@@ -22,7 +22,7 @@ include $(addprefix ./vendor/github.com/openshift/build-machinery-go/make/, \
 GO_TEST_PACKAGES :=./pkg/... ./cmd/...
 GO_BUILD_FLAGS :=-tags strictfipsruntime
 
-IMAGE_REGISTRY := quay.io/redhat-user-workloads/dynamicacceleratorsl-tenant
+IMAGE_REGISTRY ?= quay.io/redhat-user-workloads/dynamicacceleratorsl-tenant
 
 # This will call a macro called "build-image" which will generate image specific targets based on the parameters:
 # $0 - macro name
