@@ -1,3 +1,8 @@
 _output/
 /instaslice-operator
 /instaslice-daemonset
+
+.env
+.ignore
+.rgignore
+*.kubeconfig
