@@ -50,7 +50,7 @@ spec:
               value: "instaslice-operator"
             - name: RELATED_IMAGE_DAEMONSET_IMAGE
               value: quay.io/ryan.phillips/instaslice-daemonset
-      serviceAccountName: instaslice-operator-operand
+      serviceAccountName: instaslice-operator
       volumes:
         - name: tmp
           emptyDir: {}

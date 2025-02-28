@@ -13,6 +13,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	v1 "k8s.io/client-go/listers/core/v1"
+	"k8s.io/klog/v2"
 
 	instasliceoperatorv1alphaclientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
 	operatorclientv1alpha1informers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions/instasliceoperator/v1alpha1"
@@ -102,10 +103,12 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return fmt.Errorf("please make sure that cert-manager is installed on your cluster")
 	}
 
-	_, err = c.operatorClient.Get(ctx, operatorclient.OperatorConfigName, metav1.GetOptions{})
+	sliceOperatorConfig, err := c.operatorClient.Get(ctx, operatorclient.OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
+
+	klog.V(2).InfoS("Got operator config", "config", sliceOperatorConfig.Spec)
 
 	return err
 }
