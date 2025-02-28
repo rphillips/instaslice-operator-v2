@@ -96,7 +96,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	logLevelController := loglevel.NewClusterOperatorLoggingController(instasliceClient, cc.EventRecorder)
 
 	// Create the Instaslice Controller
-	instasliceController := instaslicecontroller.NewInstasliceController(operatorConfigInformers.OpenShiftOperator().V1alpha1().Instaslices(), cc.EventRecorder)
+	instasliceController := instaslicecontroller.NewInstasliceController(namespace, operatorConfigClient, operatorConfigInformers.OpenShiftOperator().V1alpha1().Instaslices().Informer(), cc.EventRecorder)
 
 	// Create the InstasliceNS Controller
 	instasliceControllerNS := instaslicecontrollerns.NewInstasliceController(namespaceFilterInformer, cc.EventRecorder)
