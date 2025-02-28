@@ -18,19 +18,28 @@ type InstasliceController struct {
 	namespace          string
 	instasliceClient   *clientset.Clientset
 	instasliceInformer cache.SharedInformer
+	eventRecorder      events.Recorder
 }
 
-func NewInstasliceController(namespace string, operatorClient *clientset.Clientset, instasliceInformer cache.SharedInformer, eventRecorder events.Recorder) factory.Controller {
+type InstasliceControllerConfig struct {
+	Namespace          string
+	OperatorClient     *clientset.Clientset
+	InstasliceInformer cache.SharedInformer
+	EventRecorder      events.Recorder
+}
+
+func NewInstasliceController(config *InstasliceControllerConfig) factory.Controller {
 	c := &InstasliceController{
-		namespace:          namespace,
-		instasliceClient:   operatorClient,
-		instasliceInformer: instasliceInformer,
+		namespace:          config.Namespace,
+		instasliceClient:   config.OperatorClient,
+		instasliceInformer: config.InstasliceInformer,
+		eventRecorder:      config.EventRecorder,
 	}
 
 	return factory.New().
 		WithSync(c.sync).
-		WithInformersQueueKeysFunc(c.nameToKey, instasliceInformer).
-		ToController("InstasliceController", eventRecorder)
+		WithInformersQueueKeysFunc(c.nameToKey, c.instasliceInformer).
+		ToController("InstasliceController", c.eventRecorder)
 }
 
 func (c *InstasliceController) sync(ctx context.Context, syncCtx factory.SyncContext) error {
