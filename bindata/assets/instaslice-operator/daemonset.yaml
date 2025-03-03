@@ -36,15 +36,15 @@ spec:
         volumeMounts:
           - name: tmp
             mountPath: "/tmp"
-      env:
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: EMULATED_MODE
-          value: false
-        - name: NVIDIA_MIG_CONFIG_DEVICES
-          value: "all"
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: EMULATED_MODE
+            value: "false"
+          - name: NVIDIA_MIG_CONFIG_DEVICES
+            value: "all"
       volumes:
         - name: tmp
           emptyDir: {}
