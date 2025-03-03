@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	operatorsv1 "github.com/openshift/api/operator/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	apiextclientv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,9 +14,11 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	v1 "k8s.io/client-go/listers/core/v1"
 	"k8s.io/klog/v2"
 
+	"github.com/openshift/instaslice-operator/bindata"
 	instasliceoperatorv1alphaclientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
 	operatorclientv1alpha1informers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions/instasliceoperator/v1alpha1"
 
@@ -22,6 +26,8 @@ import (
 	"github.com/openshift/library-go/pkg/controller/factory"
 	"github.com/openshift/library-go/pkg/operator/events"
 	"github.com/openshift/library-go/pkg/operator/resource/resourceapply"
+	"github.com/openshift/library-go/pkg/operator/resource/resourcemerge"
+	"github.com/openshift/library-go/pkg/operator/resource/resourceread"
 	"github.com/openshift/library-go/pkg/operator/v1helpers"
 )
 
@@ -39,20 +45,22 @@ type TargetConfigReconciler struct {
 	instasliceoperatorClient   *operatorclient.InstasliceOperatorSetClient
 	instasliceInformer         operatorclientv1alpha1informers.InstasliceInformer
 	kubeClient                 kubernetes.Interface
+	appsClient                 appsv1client.DaemonSetsGetter
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces
 	namespace                  string
 	operatorClient             instasliceoperatorv1alphaclientset.InstasliceOperatorInterface
 	resourceCache              resourceapply.ResourceCache
 	secretLister               v1.SecretLister
-	targetImage                string
+	targetDaemonsetImage       string
 }
 
 func NewTargetConfigReconciler(
-	targetImage string,
+	targetDaemonsetImage string,
 	namespace string,
 	operatorConfigClient instasliceoperatorv1alphaclientset.InstasliceOperatorInterface,
 	operatorClientInformer operatorclientv1alpha1informers.InstasliceOperatorInformer,
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces,
+	appsClient appsv1client.DaemonSetsGetter,
 	instasliceoperatorClient *operatorclient.InstasliceOperatorSetClient,
 	dynamicClient dynamic.Interface,
 	discoveryClient discovery.DiscoveryInterface,
@@ -67,12 +75,13 @@ func NewTargetConfigReconciler(
 		eventRecorder:              eventRecorder,
 		instasliceoperatorClient:   instasliceoperatorClient,
 		kubeClient:                 kubeClient,
+		appsClient:                 appsClient,
 		kubeInformersForNamespaces: kubeInformersForNamespaces,
 		namespace:                  namespace,
 		operatorClient:             operatorConfigClient,
 		resourceCache:              resourceapply.NewResourceCache(),
 		secretLister:               kubeInformersForNamespaces.SecretLister(),
-		targetImage:                targetImage,
+		targetDaemonsetImage:       targetDaemonsetImage,
 	}
 
 	return factory.New().WithInformers(
@@ -103,14 +112,48 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return fmt.Errorf("please make sure that cert-manager is installed on your cluster")
 	}
 
-	sliceOperatorConfig, err := c.operatorClient.Get(ctx, operatorclient.OperatorConfigName, metav1.GetOptions{})
+	sliceOperator, err := c.operatorClient.Get(ctx, operatorclient.OperatorConfigName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
 
-	klog.V(2).InfoS("Got operator config", "emulated_mode", sliceOperatorConfig.Spec.EmulatedMode)
+	operatorGenerations := sliceOperator.Status.Generations
+	ownerReference := metav1.OwnerReference{
+		APIVersion: "inference.redhat.com/v1alpha1",
+		Kind:       "InstasliceOperator",
+		Name:       sliceOperator.Name,
+		UID:        sliceOperator.UID,
+	}
+	emulatedMode := sliceOperator.Spec.EmulatedMode
 
-	return err
+	klog.V(2).InfoS("Got operator config", "emulated_mode", emulatedMode)
+
+	if _, _, err := c.manageDaemonset(ctx, emulatedMode, operatorGenerations, ownerReference); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, emulatedMode bool, generations []operatorsv1.GenerationStatus, ownerReference metav1.OwnerReference) (*appsv1.DaemonSet, bool, error) {
+	required := resourceread.ReadDaemonSetV1OrDie(bindata.MustAsset("assets/instaslice-operator/daemonset.yaml"))
+	required.Namespace = c.namespace
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+	for _, container := range required.Spec.Template.Spec.Containers {
+		container.Image = c.targetDaemonsetImage
+		for _, env := range container.Env {
+			if env.Name == "EMULATED_MODE" {
+				env.Value = fmt.Sprintf("%v", emulatedMode)
+			}
+		}
+	}
+	return resourceapply.ApplyDaemonSet(ctx,
+		c.appsClient,
+		c.eventRecorder,
+		required,
+		resourcemerge.ExpectedDaemonSetGeneration(required, generations))
 }
 
 func isResourceRegistered(discoveryClient discovery.DiscoveryInterface, gvk schema.GroupVersionKind) (bool, error) {
