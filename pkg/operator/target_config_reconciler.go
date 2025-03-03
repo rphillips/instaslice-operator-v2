@@ -117,6 +117,7 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
 
+	emulatedMode := sliceOperator.Spec.EmulatedMode
 	operatorGenerations := sliceOperator.Status.Generations
 	ownerReference := metav1.OwnerReference{
 		APIVersion: "inference.redhat.com/v1alpha1",
@@ -124,7 +125,6 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		Name:       sliceOperator.Name,
 		UID:        sliceOperator.UID,
 	}
-	emulatedMode := sliceOperator.Spec.EmulatedMode
 
 	klog.V(2).InfoS("Got operator config", "emulated_mode", emulatedMode)
 
@@ -141,11 +141,11 @@ func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, emulatedMo
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
-	for _, container := range required.Spec.Template.Spec.Containers {
-		container.Image = c.targetDaemonsetImage
-		for _, env := range container.Env {
-			if env.Name == "EMULATED_MODE" {
-				env.Value = fmt.Sprintf("%v", emulatedMode)
+	for i := range required.Spec.Template.Spec.Containers {
+		required.Spec.Template.Spec.Containers[i].Image = c.targetDaemonsetImage
+		for j := range required.Spec.Template.Spec.Containers[i].Env {
+			if required.Spec.Template.Spec.Containers[i].Env[j].Name == "EMULATED_MODE" {
+				required.Spec.Template.Spec.Containers[i].Env[j].Value = fmt.Sprintf("%v", emulatedMode)
 			}
 		}
 	}
