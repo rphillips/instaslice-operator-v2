@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 	"k8s.io/klog/v2"
 
 	operatorconfigclient "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned"
@@ -45,6 +46,11 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	}
 
 	discoveryClient, err := discovery.NewDiscoveryClientForConfig(cc.KubeConfig)
+	if err != nil {
+		return err
+	}
+
+	appsClient, err := appsv1client.NewForConfig(cc.KubeConfig)
 	if err != nil {
 		return err
 	}
@@ -84,6 +90,7 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 		operatorConfigClient.OpenShiftOperatorV1alpha1().InstasliceOperators(namespace),
 		operatorConfigInformers.OpenShiftOperator().V1alpha1().InstasliceOperators(),
 		kubeInformersForNamespaces,
+		appsClient,
 		instasliceClient,
 		dynamicClient,
 		discoveryClient,

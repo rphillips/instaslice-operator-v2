@@ -19,5 +19,6 @@ func NewDaemonset(ctx context.Context) *cobra.Command {
 	cmd := cfg.NewCommandWithContext(ctx)
 	cmd.Use = "daemonset"
 	cmd.Short = "Start the Cluster Instaslice Operator"
+
 	return cmd
 }
