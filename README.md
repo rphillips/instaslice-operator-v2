@@ -1,5 +1,11 @@
 # Building
 
+## Install imagebuilder
+
+```
+go install github.com/openshift/imagebuilder/cmd/imagebuilder@latest
+```
+
 ## Create an .env file
 
 The contents of the file overload the IMAGE_REGISTRY environment variable.
