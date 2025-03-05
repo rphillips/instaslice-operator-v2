@@ -18,6 +18,5 @@ func NewOperator(ctx context.Context) *cobra.Command {
 		NewCommandWithContext(ctx)
 	cmd.Use = "operator"
 	cmd.Short = "Start the Cluster Instaslice Operator"
-
 	return cmd
 }

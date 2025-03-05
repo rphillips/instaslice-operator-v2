@@ -114,6 +114,12 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	// Create the InstasliceNS Controller
 	instasliceControllerNS := instaslicecontrollerns.NewInstasliceController(namespaceFilterInformer, cc.EventRecorder)
 
+	// Create webhook server
+	// _, err = webhookserver.NewServer(cc.ProtoKubeConfig, "", "", "")
+	// if err != nil {
+	// 	return err
+	// }
+
 	klog.Infof("Starting informers")
 	operatorConfigInformers.Start(ctx.Done())
 	kubeInformersForNamespaces.Start(ctx.Done())
@@ -127,7 +133,10 @@ func RunOperator(ctx context.Context, cc *controllercmd.ControllerContext) error
 	go instasliceController.Run(ctx, 1)
 	klog.Infof("Starting Instaslice Namespace Controller")
 	go instasliceControllerNS.Run(ctx, 1)
+	klog.Infof("Starting Webhook Server")
+	// go mutatingWebhookServer.Run(ctx)
 
 	<-ctx.Done()
+
 	return nil
 }

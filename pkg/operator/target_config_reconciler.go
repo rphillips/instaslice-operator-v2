@@ -52,6 +52,8 @@ type TargetConfigReconciler struct {
 	resourceCache              resourceapply.ResourceCache
 	secretLister               v1.SecretLister
 	targetDaemonsetImage       string
+	cache                      resourceapply.ResourceCache
+	generations                []operatorsv1.GenerationStatus
 }
 
 func NewTargetConfigReconciler(
@@ -82,16 +84,19 @@ func NewTargetConfigReconciler(
 		resourceCache:              resourceapply.NewResourceCache(),
 		secretLister:               kubeInformersForNamespaces.SecretLister(),
 		targetDaemonsetImage:       targetDaemonsetImage,
+		cache:                      resourceapply.NewResourceCache(),
 	}
 
 	return factory.New().WithInformers(
 		// for the operator changes
 		operatorClientInformer.Informer(),
 		// for the deployment and its configmap, secret, daemonsets.
-		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().Deployments().Informer(),
+		kubeInformersForNamespaces.InformersFor(namespace).Admissionregistration().V1().MutatingWebhookConfigurations().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().DaemonSets().Informer(),
+		kubeInformersForNamespaces.InformersFor(namespace).Apps().V1().Deployments().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().ConfigMaps().Informer(),
 		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().Secrets().Informer(),
+		kubeInformersForNamespaces.InformersFor(namespace).Core().V1().Services().Informer(),
 	).ResyncEvery(time.Minute*5).
 		WithSync(c.sync).
 		WithSyncDegradedOnError(instasliceoperatorClient).
@@ -118,7 +123,6 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 	}
 
 	emulatedMode := sliceOperator.Spec.EmulatedMode
-	operatorGenerations := sliceOperator.Status.Generations
 	ownerReference := metav1.OwnerReference{
 		APIVersion: "inference.redhat.com/v1alpha1",
 		Kind:       "InstasliceOperator",
@@ -128,21 +132,60 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 
 	klog.V(2).InfoS("Got operator config", "emulated_mode", emulatedMode)
 
-	if _, _, err := c.manageDaemonset(ctx, emulatedMode, operatorGenerations, ownerReference); err != nil {
+	if _, _, err := c.manageDaemonset(ctx, emulatedMode, ownerReference); err != nil {
+		return err
+	}
+
+	if err := c.manageMutatingWebhookService(ctx, ownerReference); err != nil {
+		return err
+	}
+
+	if err := c.manageMutatingWebhook(ctx, ownerReference); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, emulatedMode bool, generations []operatorsv1.GenerationStatus, ownerReference metav1.OwnerReference) (*appsv1.DaemonSet, bool, error) {
+func (c *TargetConfigReconciler) manageMutatingWebhookService(ctx context.Context, ownerReference metav1.OwnerReference) error {
+	required := resourceread.ReadServiceV1OrDie(bindata.MustAsset("assets/instaslice-operator/webhook-service.yaml"))
+	required.Namespace = c.namespace
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+	_, _, err := resourceapply.ApplyService(ctx, c.kubeClient.CoreV1(), c.eventRecorder, required)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *TargetConfigReconciler) manageMutatingWebhook(ctx context.Context, ownerReference metav1.OwnerReference) error {
+	required := resourceread.ReadMutatingWebhookConfigurationV1OrDie(bindata.MustAsset("assets/instaslice-operator/webhook.yaml"))
+	required.Namespace = c.namespace
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+	mutatingWebhook, updated, err := resourceapply.ApplyMutatingWebhookConfigurationImproved(ctx, c.kubeClient.AdmissionregistrationV1(), c.eventRecorder, required, c.cache)
+	if err != nil {
+		return err
+	}
+	if updated {
+		resourcemerge.SetMutatingWebhooksConfigurationGeneration(&c.generations, mutatingWebhook)
+	}
+	return nil
+}
+
+func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, emulatedMode bool, ownerReference metav1.OwnerReference) (*appsv1.DaemonSet, bool, error) {
 	required := resourceread.ReadDaemonSetV1OrDie(bindata.MustAsset("assets/instaslice-operator/daemonset.yaml"))
 	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
 		ownerReference,
 	}
 	for i := range required.Spec.Template.Spec.Containers {
-		required.Spec.Template.Spec.Containers[i].Image = c.targetDaemonsetImage
+		if c.targetDaemonsetImage != "" {
+			required.Spec.Template.Spec.Containers[i].Image = c.targetDaemonsetImage
+		}
 		for j := range required.Spec.Template.Spec.Containers[i].Env {
 			if required.Spec.Template.Spec.Containers[i].Env[j].Name == "EMULATED_MODE" {
 				required.Spec.Template.Spec.Containers[i].Env[j].Value = fmt.Sprintf("%v", emulatedMode)
@@ -153,7 +196,7 @@ func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, emulatedMo
 		c.appsClient,
 		c.eventRecorder,
 		required,
-		resourcemerge.ExpectedDaemonSetGeneration(required, generations))
+		resourcemerge.ExpectedDaemonSetGeneration(required, c.generations))
 }
 
 func isResourceRegistered(discoveryClient discovery.DiscoveryInterface, gvk schema.GroupVersionKind) (bool, error) {
