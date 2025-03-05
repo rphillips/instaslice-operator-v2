@@ -39,25 +39,27 @@ const (
 
 type TargetConfigReconciler struct {
 	apiextensionClient         *apiextclientv1.Clientset
+	appsClient                 appsv1client.DaemonSetsGetter
+	cache                      resourceapply.ResourceCache
 	discoveryClient            discovery.DiscoveryInterface
 	dynamicClient              dynamic.Interface
 	eventRecorder              events.Recorder
-	instasliceoperatorClient   *operatorclient.InstasliceOperatorSetClient
+	generations                []operatorsv1.GenerationStatus
 	instasliceInformer         operatorclientv1alpha1informers.InstasliceInformer
+	instasliceoperatorClient   *operatorclient.InstasliceOperatorSetClient
 	kubeClient                 kubernetes.Interface
-	appsClient                 appsv1client.DaemonSetsGetter
 	kubeInformersForNamespaces v1helpers.KubeInformersForNamespaces
 	namespace                  string
 	operatorClient             instasliceoperatorv1alphaclientset.InstasliceOperatorInterface
 	resourceCache              resourceapply.ResourceCache
 	secretLister               v1.SecretLister
 	targetDaemonsetImage       string
-	cache                      resourceapply.ResourceCache
-	generations                []operatorsv1.GenerationStatus
+	targetWebhookImage         string
 }
 
 func NewTargetConfigReconciler(
 	targetDaemonsetImage string,
+	targetWebhookImage string,
 	namespace string,
 	operatorConfigClient instasliceoperatorv1alphaclientset.InstasliceOperatorInterface,
 	operatorClientInformer operatorclientv1alpha1informers.InstasliceOperatorInformer,
@@ -84,6 +86,7 @@ func NewTargetConfigReconciler(
 		resourceCache:              resourceapply.NewResourceCache(),
 		secretLister:               kubeInformersForNamespaces.SecretLister(),
 		targetDaemonsetImage:       targetDaemonsetImage,
+		targetWebhookImage:         targetWebhookImage,
 		cache:                      resourceapply.NewResourceCache(),
 	}
 
