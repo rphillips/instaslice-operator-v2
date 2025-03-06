@@ -30,14 +30,14 @@ spec:
         app.kubernetes.io/version: 0.0.1
     spec:
       affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
+        podAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
           - podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/part-of: instalice-operator
             weight: 100
-            topologyKey: kubernetes.io/hostname
       automountServiceAccountToken: false
       containers:
       - command:
@@ -45,20 +45,10 @@ spec:
         args:
           - serve
         image: quay.io/ryan.phillips/instaslice-webhook
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: https
-            scheme: HTTPS
         name: instaslice-operator-webhook
         ports:
         - containerPort: 8443
           name: https
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: https
-            scheme: HTTPS
         resources:
           requests:
             cpu: 5m
