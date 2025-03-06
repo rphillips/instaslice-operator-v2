@@ -5,13 +5,15 @@ metadata:
     app.kubernetes.io/component: webhook
     app.kubernetes.io/created-by: instaslice-operator
     app.kubernetes.io/instance: webhook-service
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/name: service
+    app.kubernetes.io/managed-by: instaslice-operator
+    app.kubernetes.io/name: instaslice-operator-webhook
     app.kubernetes.io/part-of: instaslice-operator
-  name: instaslice-operator-webhook-service
+  name: instaslice-operator-webhook
   namespace: instaslice-system
 spec:
+  selector:
+    app.kubernetes.io/name: instaslice-operator-webhook
   ports:
-  - port: 443
+  - port: 8443
     protocol: TCP
-    targetPort: 9443
+    targetPort: 8443

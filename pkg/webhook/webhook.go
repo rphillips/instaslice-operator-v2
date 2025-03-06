@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	URI         string = "/mutate-pod"
-	WebhookName string = "instaslice-webhook"
+	URI                  string = "/mutate-pod"
+	ReadinessEndpointURI string = "/readyz"
+	HealthzEndpointURI   string = "/healthz"
+	WebhookName          string = "instaslice-webhook"
 )
 
 // Webhook interface
@@ -20,6 +22,10 @@ type Webhook interface {
 	Authorized(request admissionctl.Request) admissionctl.Response
 	// GetURI returns the URI for the webhook
 	GetURI() string
+	// GetReadiness URI returns the URI for the webhook
+	GetReadinessURI() string
+	// GetHealthzURI() returns the URI for the webhook
+	GetHealthzURI() string
 	// Name is the name of the webhook
 	Name() string
 }
@@ -32,6 +38,12 @@ func NewWebhook() Webhook {
 
 // GetURI implements Webhook interface
 func (s *InstasliceWebhook) GetURI() string { return URI }
+
+// GetReadinessURI implements Webhook interface
+func (s *InstasliceWebhook) GetReadinessURI() string { return ReadinessEndpointURI }
+
+// GetHealthzURI() implements Webhook interface
+func (s *InstasliceWebhook) GetHealthzURI() string { return HealthzEndpointURI }
 
 // Name implements Webhook interface
 func (s *InstasliceWebhook) Name() string { return WebhookName }

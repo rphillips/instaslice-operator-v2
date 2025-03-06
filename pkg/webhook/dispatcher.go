@@ -117,3 +117,11 @@ func ParseHTTPRequest(r *http.Request) (admissionctl.Request, admissionctl.Respo
 	}
 	return req, resp, nil
 }
+
+func (d *Dispatcher) HandleReadiness(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+}
+
+func (d *Dispatcher) HandleHealthz(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+}

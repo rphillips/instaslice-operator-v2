@@ -95,6 +95,7 @@ rules:
       - events
       - namespaces
       - secrets
+      - services
     verbs:
       - create
       - delete
@@ -103,3 +104,14 @@ rules:
       - patch
       - update
       - watch
+  - apiGroups:
+    - cert-manager.io
+    resources:
+    - certificates
+    - issuers
+    verbs:
+    - create
+    - get
+    - list
+    - patch
+    - update

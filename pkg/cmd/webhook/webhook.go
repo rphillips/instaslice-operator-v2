@@ -44,7 +44,7 @@ func NewWebhook(ctx context.Context) *cobra.Command {
 	cmd.Flags().StringVar(&tlsKey, "tlskey", "", "File containing the x509 private key")
 	cmd.Flags().StringVar(&caCert, "cacert", "", "File containing the x509 CA cert for HTTPS")
 	cmd.Flags().StringVar(&listenAddress, "listen", "0.0.0.0", "Listen address")
-	cmd.Flags().IntVar(&listenPort, "port", 5000, "Secure port that the webhook listens on")
+	cmd.Flags().IntVar(&listenPort, "port", 8443, "Secure port that the webhook listens on")
 	cmd.Flags().BoolVar(&testHooks, "testHooks", false, "Test webhook URI uniqueness and quit")
 	return cmd
 }
@@ -52,7 +52,10 @@ func NewWebhook(ctx context.Context) *cobra.Command {
 func startServer() {
 	hook := webhook.NewWebhook()
 	dispatcher := webhook.NewDispatcher(hook)
+
 	http.HandleFunc(hook.GetURI(), dispatcher.HandleRequest)
+	http.HandleFunc(hook.GetReadinessURI(), dispatcher.HandleReadiness)
+	http.HandleFunc(hook.GetHealthzURI(), dispatcher.HandleHealthz)
 
 	if testHooks {
 		os.Exit(0)
