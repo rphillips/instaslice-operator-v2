@@ -46,6 +46,13 @@ spec:
           - serve
         image: quay.io/ryan.phillips/instaslice-webhook
         name: instaslice-operator-webhook
+        livenessProbe:
+          exec:
+            command:
+            - touch
+            - tmp/healthy
+          initialDelaySeconds: 120
+          periodSeconds: 600
         ports:
         - containerPort: 8443
           name: https
