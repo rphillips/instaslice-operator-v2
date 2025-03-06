@@ -13,6 +13,7 @@ default:
 push-images: build-images
   {{runtime}} push {{registry}}/instaslice-operator
   {{runtime}} push {{registry}}/instaslice-daemonset
+  {{runtime}} push {{registry}}/instaslice-webhook
 
 # Build images using the $IMAGE_REGISTRY
 build-images:

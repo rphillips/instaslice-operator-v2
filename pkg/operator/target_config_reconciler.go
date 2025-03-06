@@ -55,6 +55,7 @@ type TargetConfigReconciler struct {
 	secretLister               v1.SecretLister
 	targetDaemonsetImage       string
 	targetWebhookImage         string
+	emulatedMode               bool
 }
 
 func NewTargetConfigReconciler(
@@ -88,6 +89,7 @@ func NewTargetConfigReconciler(
 		targetDaemonsetImage:       targetDaemonsetImage,
 		targetWebhookImage:         targetWebhookImage,
 		cache:                      resourceapply.NewResourceCache(),
+		emulatedMode:               false,
 	}
 
 	return factory.New().WithInformers(
@@ -125,7 +127,8 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return fmt.Errorf("unable to get operator configuration %s/%s: %w", c.namespace, operatorclient.OperatorConfigName, err)
 	}
 
-	emulatedMode := sliceOperator.Spec.EmulatedMode
+	c.emulatedMode = sliceOperator.Spec.EmulatedMode
+
 	ownerReference := metav1.OwnerReference{
 		APIVersion: "inference.redhat.com/v1alpha1",
 		Kind:       "InstasliceOperator",
@@ -133,9 +136,13 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		UID:        sliceOperator.UID,
 	}
 
-	klog.V(2).InfoS("Got operator config", "emulated_mode", emulatedMode)
+	klog.V(2).InfoS("Got operator config", "emulated_mode", c.emulatedMode)
 
-	if _, _, err := c.manageDaemonset(ctx, emulatedMode, ownerReference); err != nil {
+	if _, _, err := c.manageDaemonset(ctx, ownerReference); err != nil {
+		return err
+	}
+
+	if err := c.manageMutatingWebhookDeployment(ctx, ownerReference); err != nil {
 		return err
 	}
 
@@ -147,6 +154,24 @@ func (c *TargetConfigReconciler) sync(ctx context.Context, syncCtx factory.SyncC
 		return err
 	}
 
+	return nil
+}
+
+func (c *TargetConfigReconciler) manageMutatingWebhookDeployment(ctx context.Context, ownerReference metav1.OwnerReference) error {
+	required := resourceread.ReadDeploymentV1OrDie(bindata.MustAsset("assets/instaslice-operator/webhook-deployment.yaml"))
+	required.Namespace = c.namespace
+	required.OwnerReferences = []metav1.OwnerReference{
+		ownerReference,
+	}
+	for i := range required.Spec.Template.Spec.Containers {
+		if c.targetWebhookImage != "" {
+			required.Spec.Template.Spec.Containers[i].Image = c.targetWebhookImage
+		}
+	}
+	_, _, err := resourceapply.ApplyDeployment(ctx, c.kubeClient.AppsV1(), c.eventRecorder, required, resourcemerge.ExpectedDeploymentGeneration(required, c.generations))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -179,7 +204,7 @@ func (c *TargetConfigReconciler) manageMutatingWebhook(ctx context.Context, owne
 	return nil
 }
 
-func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, emulatedMode bool, ownerReference metav1.OwnerReference) (*appsv1.DaemonSet, bool, error) {
+func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, ownerReference metav1.OwnerReference) (*appsv1.DaemonSet, bool, error) {
 	required := resourceread.ReadDaemonSetV1OrDie(bindata.MustAsset("assets/instaslice-operator/daemonset.yaml"))
 	required.Namespace = c.namespace
 	required.OwnerReferences = []metav1.OwnerReference{
@@ -191,7 +216,7 @@ func (c *TargetConfigReconciler) manageDaemonset(ctx context.Context, emulatedMo
 		}
 		for j := range required.Spec.Template.Spec.Containers[i].Env {
 			if required.Spec.Template.Spec.Containers[i].Env[j].Name == "EMULATED_MODE" {
-				required.Spec.Template.Spec.Containers[i].Env[j].Value = fmt.Sprintf("%v", emulatedMode)
+				required.Spec.Template.Spec.Containers[i].Env[j].Value = fmt.Sprintf("%v", c.emulatedMode)
 			}
 		}
 	}

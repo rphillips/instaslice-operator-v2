@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: instaslice-operator
+    app.kubernetes.io/name: instaslice-operator-webhook
+    app.kubernetes.io/part-of: instaslice-operator
+    app.kubernetes.io/version: 0.0.1
+  name: instaslice-operator-webhook
+  namespace: instaslice-system
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: instaslice-operator-webhook
+      app.kubernetes.io/part-of: instaslice-operator
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: instaslice-operator-webhook
+        openshift.io/required-scc: restricted-v2
+        target.workload.openshift.io/management: '{"effect": "PreferredDuringScheduling"}'
+      labels:
+        app.kubernetes.io/managed-by: instaslice-operator
+        app.kubernetes.io/name: instaslice-operator-webhook
+        app.kubernetes.io/part-of: instaslice-operator
+        app.kubernetes.io/version: 0.0.1
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/part-of: instalice-operator
+            weight: 100
+            topologyKey: kubernetes.io/hostname
+      automountServiceAccountToken: false
+      containers:
+      - command:
+          - /usr/bin/instaslice-webhook
+        args:
+          - serve
+        image: quay.io/ryan.phillips/instaslice-webhook
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+        name: instaslice-operator-webhook
+        ports:
+        - containerPort: 8443
+          name: https
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: https
+            scheme: HTTPS
+        resources:
+          requests:
+            cpu: 5m
+            memory: 30Mi
+        securityContext: {}
+        terminationMessagePolicy: FallbackToLogsOnError
+      priorityClassName: system-cluster-critical
+      securityContext: {}
+      serviceAccountName: instaslice-operator
