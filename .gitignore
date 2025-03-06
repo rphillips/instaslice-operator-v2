@@ -1,6 +1,7 @@
 _output/
 /instaslice-operator
 /instaslice-daemonset
+/instaslice-webhook
 
 .env
 .ignore

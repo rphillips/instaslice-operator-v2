@@ -50,6 +50,8 @@ spec:
               value: "instaslice-operator"
             - name: RELATED_IMAGE_DAEMONSET_IMAGE
               value: quay.io/ryan.phillips/instaslice-daemonset
+            - name: RELATED_IMAGE_WEBHOOK_IMAGE
+              value: quay.io/ryan.phillips/instaslice-webhook
       serviceAccountName: instaslice-operator
       volumes:
         - name: tmp

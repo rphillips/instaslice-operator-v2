@@ -95,6 +95,7 @@ rules:
       - events
       - namespaces
       - secrets
+      - services
     verbs:
       - create
       - delete

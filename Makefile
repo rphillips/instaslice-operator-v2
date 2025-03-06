@@ -32,6 +32,7 @@ IMAGE_REGISTRY ?= quay.io/redhat-user-workloads/dynamicacceleratorsl-tenant
 # $4 - context directory for image build
 $(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator, ./Dockerfile.ocp,.)
 $(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset, ./Dockerfile.daemonset.ocp,.)
+$(call build-image,instaslice-webhook,$(IMAGE_REGISTRY)/instaslice-webhook, ./Dockerfile.webhook.ocp,.)
 
 $(call verify-golang-versions,Dockerfile.ocp)
 $(call verify-golang-versions,Dockerfile.daemonset.ocp)
