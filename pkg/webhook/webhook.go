@@ -7,6 +7,7 @@ import (
 	admissionctl "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -59,7 +60,7 @@ func (s *InstasliceWebhook) Authorized(request admissionctl.Request) admissionct
 
 	pod, err := s.renderPod(request)
 	if err != nil {
-		log.Error(err, "couldn't render a Pod from the incoming request")
+		klog.Error(err, "couldn't render a Pod from the incoming request")
 		ret = admissionctl.Errored(http.StatusBadRequest, err)
 		ret.UID = request.AdmissionRequest.UID
 		return ret
@@ -67,7 +68,7 @@ func (s *InstasliceWebhook) Authorized(request admissionctl.Request) admissionct
 
 	mutatePod, err := s.mutatePod(pod)
 	if err != nil {
-		log.Error(err, "could not mutate pod")
+		klog.Error(err, "could not mutate pod")
 		ret = admissionctl.Errored(http.StatusBadRequest, err)
 		ret.UID = request.AdmissionRequest.UID
 		return ret
