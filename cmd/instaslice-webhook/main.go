@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/openshift/instaslice-operator/pkg/cmd/webhook"
+	"github.com/openshift/instaslice-operator/pkg/version"
 
 	"github.com/spf13/cobra"
 
@@ -26,8 +27,9 @@ func main() {
 
 func NewInstasliceWebhookCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "instaslice-webhook",
-		Short: "OpenShift cluster Instaslice operator webhook",
+		Use:     "instaslice-webhook",
+		Short:   "OpenShift cluster Instaslice operator webhook",
+		Version: version.Get().GitVersion,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
 			if err != nil {
