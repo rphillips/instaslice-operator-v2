@@ -30,12 +30,22 @@ IMAGE_REGISTRY ?= quay.io/redhat-user-workloads/dynamicacceleratorsl-tenant
 # $2 - image ref
 # $3 - Dockerfile path
 # $4 - context directory for image build
+ifdef OSS
+$(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator, ./Dockerfile,.)
+$(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset, ./Dockerfile.daemonset,.)
+$(call build-image,instaslice-webhook,$(IMAGE_REGISTRY)/instaslice-webhook, ./Dockerfile.webhook,.)
+
+$(call verify-golang-versions,Dockerfile)
+$(call verify-golang-versions,Dockerfile.daemonset)
+else
 $(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator, ./Dockerfile.ocp,.)
 $(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset, ./Dockerfile.daemonset.ocp,.)
 $(call build-image,instaslice-webhook,$(IMAGE_REGISTRY)/instaslice-webhook, ./Dockerfile.webhook.ocp,.)
 
 $(call verify-golang-versions,Dockerfile.ocp)
 $(call verify-golang-versions,Dockerfile.daemonset.ocp)
+endif
+
 
 regen-crd:
 	go build -o _output/tools/bin/controller-gen ./vendor/sigs.k8s.io/controller-tools/cmd/controller-gen
