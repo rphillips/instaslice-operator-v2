@@ -20,3 +20,10 @@ IMAGE_REGISTRY=quay.io/some.user
 just push-images create-kind apply-cert-manager apply-crds
 ```
 
+
+## Building and Deploying to any other cluster
+
+```bash
+ just push-images apply-cert-manager apply-crds
+```
+
