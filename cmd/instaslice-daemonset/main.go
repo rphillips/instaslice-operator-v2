@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/openshift/instaslice-operator/pkg/cmd/daemonset"
+	"github.com/openshift/instaslice-operator/pkg/version"
 )
 
 func main() {
@@ -23,8 +24,9 @@ func main() {
 
 func NewInstasliceDaemonsetCommand(ctx context.Context) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "instaslice-daemonset",
-		Short: "Instaslice Daemonset",
+		Use:     "instaslice-daemonset",
+		Short:   "Instaslice Daemonset",
+		Version: version.Get().GitVersion,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
 			if err != nil {
