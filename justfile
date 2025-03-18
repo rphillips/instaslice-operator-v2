@@ -2,6 +2,7 @@ set dotenv-load
 
 export runtime := env('CONTAINER_RUNTIME', 'docker')
 export registry := env('IMAGE_REGISTRY')
+export imgtag := env('IMAGE_TAG', 'latest')
 
 export kind_cluster := "slice-cluster"
 export kind_image := "kindest/node:v1.31.2"
@@ -11,9 +12,20 @@ default:
 
 # Push images to the $IMAGE_REGISTRY
 push-images: build-images
-  {{runtime}} push {{registry}}/instaslice-operator
-  {{runtime}} push {{registry}}/instaslice-daemonset
-  {{runtime}} push {{registry}}/instaslice-webhook
+  #!/usr/bin/env bash
+  
+  if [[ "{{runtime}}" == "podman" ]]; then
+    echo "Copying image from podman root: operator"
+    {{runtime}} pull docker-daemon:{{registry}}/instaslice-operator:{{imgtag}}
+    echo "Copying image from podman root: daemonset"
+    {{runtime}} pull docker-daemon:{{registry}}/instaslice-daemonset:{{imgtag}}
+    echo "Copying image from podman root: webhook"
+    {{runtime}} pull docker-daemon:{{registry}}/instaslice-webhook:{{imgtag}}
+  fi
+
+  {{runtime}} push {{registry}}/instaslice-operator:{{imgtag}}
+  {{runtime}} push {{registry}}/instaslice-daemonset:{{imgtag}}
+  {{runtime}} push {{registry}}/instaslice-webhook:{{imgtag}}
 
 # Build images using the $IMAGE_REGISTRY
 build-images:
