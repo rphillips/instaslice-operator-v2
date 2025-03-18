@@ -3,6 +3,7 @@ all: build
 
 SOURCE_GIT_TAG ?=$(shell git describe --long --tags --abbrev=7 --match 'v[0-9]*' || echo 'v1.0.0-$(SOURCE_GIT_COMMIT)')
 SOURCE_GIT_COMMIT ?=$(shell git rev-parse --short "HEAD^{commit}" 2>/dev/null)
+IMAGE_TAG ?= latest
 
 # OS_GIT_VERSION is populated by ART
 # If building out of the ART pipeline, fallback to SOURCE_GIT_TAG
@@ -31,16 +32,16 @@ IMAGE_REGISTRY ?= quay.io/redhat-user-workloads/dynamicacceleratorsl-tenant
 # $3 - Dockerfile path
 # $4 - context directory for image build
 ifdef OSS
-$(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator, ./Dockerfile,.)
-$(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset, ./Dockerfile.daemonset,.)
-$(call build-image,instaslice-webhook,$(IMAGE_REGISTRY)/instaslice-webhook, ./Dockerfile.webhook,.)
+$(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator:$(IMAGE_TAG), ./Dockerfile,.)
+$(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset:$(IMAGE_TAG), ./Dockerfile.daemonset,.)
+$(call build-image,instaslice-webhook,$(IMAGE_REGISTRY)/instaslice-webhook:$(IMAGE_TAG), ./Dockerfile.webhook,.)
 
 $(call verify-golang-versions,Dockerfile)
 $(call verify-golang-versions,Dockerfile.daemonset)
 else
-$(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator, ./Dockerfile.ocp,.)
-$(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset, ./Dockerfile.daemonset.ocp,.)
-$(call build-image,instaslice-webhook,$(IMAGE_REGISTRY)/instaslice-webhook, ./Dockerfile.webhook.ocp,.)
+$(call build-image,instaslice-operator,$(IMAGE_REGISTRY)/instaslice-operator:$(IMAGE_TAG), ./Dockerfile.ocp,.)
+$(call build-image,instaslice-daemonset,$(IMAGE_REGISTRY)/instaslice-daemonset:$(IMAGE_TAG), ./Dockerfile.daemonset.ocp,.)
+$(call build-image,instaslice-webhook,$(IMAGE_REGISTRY)/instaslice-webhook:$(IMAGE_TAG), ./Dockerfile.webhook.ocp,.)
 
 $(call verify-golang-versions,Dockerfile.ocp)
 $(call verify-golang-versions,Dockerfile.daemonset.ocp)
