@@ -17,14 +17,14 @@ IMAGE_REGISTRY=quay.io/some.user
 ## Building and Deploying to Kind
 
 ```bash
-OSS=1 just push-images create-kind apply-cert-manager apply-crds
+OSS=1 just images-push kind-create apply-cert-manager apply-crds
 ```
 
 
 ## Building and Deploying to any other cluster
 
 ```bash
-just push-images apply-cert-manager apply-crds
+just images-push apply-cert-manager apply-crds
 ```
 
 ## Environment Flags

@@ -11,7 +11,7 @@ default:
   just --list
 
 # Push images to the $IMAGE_REGISTRY
-push-images: build-images
+images-push: images-build
   #!/usr/bin/env bash
   
   if [[ "{{runtime}}" == "podman" ]]; then
@@ -28,11 +28,11 @@ push-images: build-images
   {{runtime}} push {{registry}}/instaslice-webhook:{{imgtag}}
 
 # Build images using the $IMAGE_REGISTRY
-build-images:
+images-build:
   IMAGE_REGISTRY={{registry}} make images
 
 # Create a local kind cluster
-create-kind:
+kind-create:
   #!/usr/bin/env bash
 
   set -e -o pipefail
@@ -48,7 +48,7 @@ create-kind:
   kubectl cluster-info --context kind-{{kind_cluster}}
 
 # Delete the local kind cluster
-delete-kind:
+kind-delete:
   #!/usr/bin/env bash
 
   set -e -o pipefail
@@ -74,7 +74,7 @@ wait-for-operator:
   kubectl wait --for=condition=ready pod -l app=instaslice-operator -n instaslice-system --timeout=300s
 
 # run e2e's
-e2e-kind path="./test/e2e" multinamespace="false": create-kind apply-cert-manager apply-crds wait-for-operator && delete-kind
+e2e-kind path="./test/e2e": kind-create apply-cert-manager apply-crds wait-for-operator && kind-delete
   #!/usr/bin/env bash
 
   echo "Run E2E's on Kind"
