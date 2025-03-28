@@ -5,6 +5,17 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type (
+	EmulatedMode string
+)
+
+const (
+	EmulatedModeEmpty    = ""
+	EmulatedModeEnabled  = "enabled"
+	EmulatedModeDisabled = "disabled"
+	EmulatedModeDefault  = EmulatedModeDisabled
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // InstasliceOperator is the Schema for the InstasliceOperator API
@@ -29,8 +40,8 @@ type InstasliceOperatorSpec struct {
 	operatorv1.OperatorSpec `json:",inline"`
 
 	// EmulatedMode true configures the operator to not use the GPU backend
-	// +required
-	EmulatedMode bool `json:"emulatedMode"`
+	// +optional
+	EmulatedMode EmulatedMode `json:"emulatedMode"`
 }
 
 // InstasliceOperatorStatus defines the observed state of InstasliceOperator
