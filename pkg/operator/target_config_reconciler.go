@@ -22,6 +22,7 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/openshift/instaslice-operator/bindata"
+	slicev1alpha1 "github.com/openshift/instaslice-operator/pkg/apis/instasliceoperator/v1alpha1"
 	instasliceoperatorv1alphaclientset "github.com/openshift/instaslice-operator/pkg/generated/clientset/versioned/typed/instasliceoperator/v1alpha1"
 	operatorclientv1alpha1informers "github.com/openshift/instaslice-operator/pkg/generated/informers/externalversions/instasliceoperator/v1alpha1"
 
@@ -58,7 +59,7 @@ type TargetConfigReconciler struct {
 	secretLister               v1.SecretLister
 	targetDaemonsetImage       string
 	targetWebhookImage         string
-	emulatedMode               bool
+	emulatedMode               slicev1alpha1.EmulatedMode
 }
 
 func NewTargetConfigReconciler(
@@ -92,7 +93,7 @@ func NewTargetConfigReconciler(
 		targetDaemonsetImage:       targetDaemonsetImage,
 		targetWebhookImage:         targetWebhookImage,
 		cache:                      resourceapply.NewResourceCache(),
-		emulatedMode:               false,
+		emulatedMode:               slicev1alpha1.EmulatedModeDisabled,
 	}
 
 	return factory.New().WithInformers(
