@@ -2,6 +2,8 @@ module github.com/openshift/instaslice-operator
 
 go 1.23.0
 
+toolchain go1.24.1
+
 require (
 	github.com/openshift/api v0.0.0-20250226153854-e8e096a21cb3
 	github.com/openshift/build-machinery-go v0.0.0-20250211133638-a00a772ae1a2
@@ -16,7 +18,7 @@ require (
 	k8s.io/code-generator v0.32.3
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738
-	sigs.k8s.io/controller-runtime v0.20.3
+	sigs.k8s.io/controller-runtime v0.20.4
 	sigs.k8s.io/controller-tools v0.17.2
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0
 )
